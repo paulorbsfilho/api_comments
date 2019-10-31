@@ -1,0 +1,15 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.ApiRoot.as_view(), name=views.ApiRoot.name),
+    path('adress/', views.AddressList.as_view(), name=views.AddressList.name),
+    path('adress/<int:id>', views.AddressDetail.as_view(), name=views.AddressList.name),
+    path('comments/', views.CommentList.as_view(), name=views.CommentList.name),
+    path('comments/<int:id>', views.CommentDetail.as_view(), name=views.CommentDetail.name),
+    path('posts/', views.PostList.as_view(), name=views.PostList.name),
+    path('posts/<int:id>', views.PostDetail.as_view(), name=views.PostDetail.name),
+    path('profiles/', views.ProfileList.as_view(), name=views.ProfileList.name),
+    path('profiles/<int:id>', views.ProfileDetail.as_view(), name=views.ProfileDetail.name),
+    path('upload-database/', views.AssetAdd.as_view(), name=views.AssetAdd.name),
+]
