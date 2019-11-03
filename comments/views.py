@@ -1,8 +1,12 @@
+import pdb
+
 from rest_framework import generics
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import FileUploadParser
+from rest_framework.utils import json
 from rest_framework.views import APIView
 
 from comments.models import Address, Comment, Post, Profile
@@ -14,7 +18,7 @@ class ApiRoot(generics.GenericAPIView):
 
     def get(self, request):
         return Response({
-            'upload-database': reverse(AssetAdd.name, request=request),
+            'database-upload': reverse(DatabaseUpload.name, request=request),
             'address': reverse(AddressList.name, request=request),
             'comments': reverse(CommentList.name, request=request),
             'posts': reverse(PostList.name, request=request),
@@ -70,14 +74,32 @@ class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'profile-detail'
 
 
-class AssetAdd(APIView):
-    name = 'upload-database'
-    parser_classes = (MultiPartParser, FormParser,)
+def db_import_json(file):
+    f = open(file.name, 'r+')
+    raw = f.read()
+    raw = raw.replace("\n", "")
+    a = json.loads(raw)
+    f.close()
+    return a
+
+
+def load_objects(data):
+    for d in data['posts']:
+        print(d)
+
+
+class DatabaseUpload(APIView):
+    name = 'database-upload'
+    parser_class = (FileUploadParser,)
 
     def post(self, request):
-        my_file = request.FILES['file_field_name']
-        filename = '/tmp/myfile'
-        with open(filename, 'wb+') as temp_file:
-            for chunk in my_file.chunks():
-                temp_file.write(chunk)
-        my_saved_file = open(filename)
+        if 'file' not in request.data:
+            raise ParseError("Empty content")
+        f = request.data['file']
+        arch = open('comments/databases/' + f.name, 'wb+')
+        for chunk in f.chunks():
+            arch.write(chunk)
+            arch.close()
+        d = db_import_json(arch)
+        load_objects(d)
+        return Response(data=d, status=204)

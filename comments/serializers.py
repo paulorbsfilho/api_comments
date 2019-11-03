@@ -9,7 +9,7 @@ class AddressSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('street', 'suite', 'city', 'zip_code',)
 
 
-class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     address = serializers.SlugRelatedField(queryset=Address.objects.all(), slug_field='zip_code')
 
     class Meta:
@@ -33,3 +33,7 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Post
         fields = ('title', 'body', 'date', 'user_id', 'comments',)
+
+
+class DatabaseSerializer(serializers.Serializer):
+    file = serializers.FileField()

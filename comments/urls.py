@@ -11,5 +11,5 @@ urlpatterns = [
     path('posts/<int:id>', views.PostDetail.as_view(), name=views.PostDetail.name),
     path('profiles/', views.ProfileList.as_view(), name=views.ProfileList.name),
     path('profiles/<int:id>', views.ProfileDetail.as_view(), name=views.ProfileDetail.name),
-    path('upload-database/', views.AssetAdd.as_view(), name=views.AssetAdd.name),
+    path('database-upload/', views.DatabaseUpload.as_view(), name=views.DatabaseUpload.name),
 ]
