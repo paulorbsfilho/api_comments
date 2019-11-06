@@ -9,8 +9,8 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.utils import json
 from rest_framework.views import APIView
 
-from comments.models import Address, Comment, Post, Profile
-from comments.serializers import AddressSerializer, CommentSerializer, PostSerializer, ProfileSerializer
+from comments.models import Address, Comment, Post, User
+from comments.serializers import AddressSerializer, CommentSerializer, PostSerializer, UserSerializer
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -22,7 +22,7 @@ class ApiRoot(generics.GenericAPIView):
             'address': reverse(AddressList.name, request=request),
             'comments': reverse(CommentList.name, request=request),
             'posts': reverse(PostList.name, request=request),
-            'profiles': reverse(ProfileList.name, request=request),
+            'users': reverse(UserList.name, request=request),
         })
 
 
@@ -62,16 +62,16 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'post-detail'
 
 
-class ProfileList(generics.ListCreateAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    name = 'profile-list'
+class UserList(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    name = 'user-list'
 
 
-class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    name = 'profile-detail'
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    name = 'user-detail'
 
 
 def db_import_json(file):
@@ -83,9 +83,27 @@ def db_import_json(file):
     return a
 
 
+def import_users(data):
+    user = User()
+    for d in data:
+        k = d.keys()
+        for i in k:
+            print(d[i])
+
+
+# d = {"posts": [{"id":1, "nome":"aeiou"}, {"id":2, "nome":"abcde"}]}
+def import_posts(data):
+    print(data)
+
+
+def import_comments(data):
+    print(data)
+
+
 def load_objects(data):
-    for d in data['posts']:
-        print(d)
+    import_users(data['users'])
+    import_posts(data['posts'])
+    import_comments(data['comments'])
 
 
 class DatabaseUpload(APIView):

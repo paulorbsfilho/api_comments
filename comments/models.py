@@ -1,7 +1,22 @@
 from django.db import models
 
 
+class Company(models.Model):
+    catchPhrase = models.CharField(max_length=100)
+    bs = models.CharField(max_length=75)
+    name = models.CharField(max_length=75)
+
+    def __str__(self):
+        return self.name
+
+
+class Geo(models.Model):
+    lng = models.CharField(max_length=10)
+    lat = models.CharField(max_length=10)
+
+
 class Address(models.Model):
+    geo = models.OneToOneField(Geo, on_delete=models.CASCADE)
     street = models.CharField(max_length=100)
     suite = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
@@ -11,10 +26,14 @@ class Address(models.Model):
         return self.street + ', ' + self.suite + ' - ' + self.zip_code
 
 
-class Profile(models.Model):
+class User(models.Model):
     name = models.CharField(max_length=200)
+    username = models.CharField(max_length=200)
+    phone = models.CharField(max_length=22)
+    website = models.CharField(max_length=75)
     email = models.EmailField()
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="user")
 
     class Meta:
         ordering = ('name',)
@@ -27,7 +46,7 @@ class Post(models.Model):
     title = models.CharField(max_length=100)
     body = models.CharField(max_length=400)
     date = models.DateTimeField(auto_now_add=True)
-    user_id = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='posts')
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
 
     class Meta:
         ordering = ('date',)
@@ -37,13 +56,14 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-    txt = models.CharField(max_length=300)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comment')
-    post_id = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    email = models.EmailField()
+    body = models.CharField(max_length=300)
+    postId = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    name = models.CharField(max_length=75)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ('date',)
 
     def __str__(self):
-        return self.profile.name + ' ' + str(self.date)
+        return str(self.email) + ' ' + str(self.date)
