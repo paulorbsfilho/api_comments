@@ -1,5 +1,3 @@
-import pdb
-
 from rest_framework import generics
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
@@ -9,7 +7,7 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.utils import json
 from rest_framework.views import APIView
 
-from comments.models import Address, Comment, Post, User
+from comments.models import Address, Comment, Post, User, Geo, Company
 from comments.serializers import AddressSerializer, CommentSerializer, PostSerializer, UserSerializer
 
 
@@ -83,21 +81,65 @@ def db_import_json(file):
     return a
 
 
+def import_geo(d):
+    geo = Geo()
+    geo.lat = d['lat']
+    geo.lng = d['lng']
+    geo.save()
+    return geo
+
+
+def import_address(d):
+    address = Address()
+    address.suite = d['suite']
+    address.street = d['street']
+    address.zip_code = d['zipcode']
+    address.city = d['city']
+    address.geo = import_geo(d['geo'])
+    address.save()
+    return address
+
+
+def import_company(d):
+    company = Company()
+    company.name = d['name']
+    company.bs = d['bs']
+    company.catchPhrase = d['catchPhrase']
+    company.save()
+    return company
+
+
 def import_users(data):
-    user = User()
     for d in data:
-        k = d.keys()
-        for i in k:
-            print(d[i])
+        user = User()
+        user.name = d['name']
+        user.phone = d['phone']
+        user.email = d['email']
+        user.username = d['username']
+        user.website = d['website']
+        user.address = import_address(d['address'])
+        user.company = import_company(d['company'])
+        user.save()
 
 
-# d = {"posts": [{"id":1, "nome":"aeiou"}, {"id":2, "nome":"abcde"}]}
 def import_posts(data):
-    print(data)
+    for d in data:
+        post = Post()
+        print(d)
+        post.body = d['body']
+        post.title = d['title']
+        post.user_id = User.objects.get(id=d['userId'])
+        post.save()
 
 
 def import_comments(data):
-    print(data)
+    for d in data:
+        comment = Comment()
+        comment.body = d['body']
+        comment.name = d['name']
+        comment.postId = Post.objects.get(id=d['postId'])
+        comment.email = d['email']
+        comment.save()
 
 
 def load_objects(data):

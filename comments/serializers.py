@@ -1,16 +1,19 @@
 from rest_framework import serializers
 
-from .models import Address, Comment, Post, User
+from .models import Address, Comment, Post, User, Geo, Company
 
 
 class AddressSerializer(serializers.HyperlinkedModelSerializer):
+    geo = serializers.SlugRelatedField(queryset=Geo.objects.all(), slug_field='lat')
+
     class Meta:
         model = Address
-        fields = ('street', 'suite', 'city', 'zip_code',)
+        fields = ('street', 'suite', 'city', 'zip_code', 'geo')
 
 
 class UserSerializer(serializers.ModelSerializer):
-    address = serializers.SlugRelatedField(queryset=Address.objects.all(), slug_field='zip_code')
+    address = serializers.SlugRelatedField(queryset=Address.objects.all(), slug_field='street')
+    company = serializers.SlugRelatedField(queryset=Company.objects.all(), slug_field='name')
 
     class Meta:
         model = User
@@ -18,12 +21,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
-    profile = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='name')
-    post_id = serializers.SlugRelatedField(queryset=Post.objects.all(), slug_field='title')
+    postId = serializers.SlugRelatedField(queryset=Post.objects.all(), slug_field='title')
 
     class Meta:
         model = Comment
-        fields = ('email', 'body', 'post_id', 'name', 'date',)
+        fields = ('email', 'body', 'postId', 'name', 'date',)
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
