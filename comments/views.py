@@ -8,7 +8,8 @@ from rest_framework.utils import json
 from rest_framework.views import APIView
 
 from comments.models import Address, Comment, Post, User, Geo, Company
-from comments.serializers import AddressSerializer, CommentSerializer, PostSerializer, UserSerializer
+from comments.serializers import CommentSerializer, PostSerializer, UserSerializer, \
+    UserPostsSerializer, PostCommentsSerializer
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -17,23 +18,12 @@ class ApiRoot(generics.GenericAPIView):
     def get(self, request):
         return Response({
             'database-upload': reverse(DatabaseUpload.name, request=request),
-            'address': reverse(AddressList.name, request=request),
             'comments': reverse(CommentList.name, request=request),
             'posts': reverse(PostList.name, request=request),
             'users': reverse(UserList.name, request=request),
+            'user-posts': reverse(UserPosts.name, request=request),
+            'post-comments': reverse(PostComment.name, request=request),
         })
-
-
-class AddressList(generics.ListCreateAPIView):
-    queryset = Address.objects.all()
-    serializer_class = AddressSerializer
-    name = 'address-list'
-
-
-class AddressDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Address.objects.all()
-    serializer_class = AddressSerializer
-    name = 'address-detail'
 
 
 class CommentList(generics.ListCreateAPIView):
@@ -70,6 +60,30 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     name = 'user-detail'
+
+
+class UserPosts(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPostsSerializer
+    name = 'user-posts-list'
+
+
+class UserPostsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPostsSerializer
+    name = 'user-post-detail'
+
+
+class PostComment(generics.ListAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostCommentsSerializer
+    name = 'post-comments'
+
+
+class PostCommentDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostCommentsSerializer
+    name = 'post-comments-detail'
 
 
 def db_import_json(file):
