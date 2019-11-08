@@ -28,7 +28,7 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'pk', 'email', 'body', 'postId', 'name', 'date',)
 
 
-class PostSerializer(serializers.HyperlinkedModelSerializer):
+class PostListSerializer(serializers.HyperlinkedModelSerializer):
     user_id = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='name')
 
     class Meta:
@@ -46,11 +46,18 @@ class PostCommentsSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserPostsSerializer(serializers.HyperlinkedModelSerializer):
-    posts = PostSerializer(many=True, read_only=True)
+    posts = PostListSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
         fields = ('url', 'pk', 'name', 'username', 'email', 'posts')
+
+
+class PostCommentDetailSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Comment
+        fields = ('name', 'email', 'body', 'postId')
 
 
 class DatabaseSerializer(serializers.Serializer):

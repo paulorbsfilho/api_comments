@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -8,8 +8,8 @@ from rest_framework.utils import json
 from rest_framework.views import APIView
 
 from comments.models import Address, Comment, Post, User, Geo, Company
-from comments.serializers import CommentSerializer, PostSerializer, UserSerializer, \
-    UserPostsSerializer, PostCommentsSerializer
+from comments.serializers import UserSerializer, UserPostsSerializer, PostCommentsSerializer, \
+    PostCommentDetailSerializer, PostListSerializer
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -18,36 +18,52 @@ class ApiRoot(generics.GenericAPIView):
     def get(self, request):
         return Response({
             'database-upload': reverse(DatabaseUpload.name, request=request),
-            'comments': reverse(CommentList.name, request=request),
             'posts': reverse(PostList.name, request=request),
             'users': reverse(UserList.name, request=request),
-            'user-posts': reverse(UserPosts.name, request=request),
-            'post-comments': reverse(PostComment.name, request=request),
+            'user-posts': reverse(UserPostsList.name, request=request),
+            'post-comments': reverse(PostsAndCommentsList.name, request=request),
+            'users-statistics': reverse(UsersStatisticsList.name, request=request),
         })
-
-
-class CommentList(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    name = 'comment-list'
-
-
-class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    name = "comment-detail"
 
 
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostListSerializer
     name = 'post-list'
 
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostListSerializer
     name = 'post-detail'
+
+
+class PostCommentList(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostCommentsSerializer
+    name = 'post-comments-list'
+
+
+class PostCommentDetail(APIView):
+    name = 'post-comments-detail'
+
+    def get(self, request, pk_post, pk_comment):
+        post = Post.objects.get(pk=pk_post)
+        comment = post.comments.get(pk=pk_comment)
+        comment_serializer = PostCommentDetailSerializer(comment)
+        return Response(comment_serializer.data)
+
+
+class PostsAndCommentsList(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostCommentsSerializer
+    name = 'post-and-comments-list'
+
+
+class PostsAndCommentsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostCommentsSerializer
+    name = 'post-and-comments-detail'
 
 
 class UserList(generics.ListCreateAPIView):
@@ -62,7 +78,7 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'user-detail'
 
 
-class UserPosts(generics.ListAPIView):
+class UserPostsList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserPostsSerializer
     name = 'user-posts-list'
@@ -74,16 +90,22 @@ class UserPostsDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'user-post-detail'
 
 
-class PostComment(generics.ListAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostCommentsSerializer
-    name = 'post-comments'
+class UsersStatisticsList(APIView):
+    name = 'users-statistics'
 
-
-class PostCommentDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostCommentsSerializer
-    name = 'post-comments-detail'
+    def get(self, request):
+        users = User.objects.all()
+        stat_list = []
+        for user in users:
+            posts = user.posts.all()
+            comments_list = []
+            for post in posts:
+                comments = post.comments.all()
+                comments_list.append(comments)
+            print(user.posts)
+            stat = {'pk': user.id, 'name': user.name, 'posts': len(posts), 'comments': len(comments_list)}
+            stat_list.append(stat)
+        return Response(stat_list, status=status.HTTP_200_OK)
 
 
 def db_import_json(file):
@@ -177,3 +199,4 @@ class DatabaseUpload(APIView):
         d = db_import_json(arch)
         load_objects(d)
         return Response(data=d, status=204)
+
