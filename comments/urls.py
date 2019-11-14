@@ -1,8 +1,12 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.authtoken.views import obtain_auth_token
 
 from . import views
 
 urlpatterns = [
+    path('api_auth/', include('rest_framework.urls')),
+    path('api-token-auth/', obtain_auth_token),
+    path('api-token-auth2/', views.CustomAuthToken.as_view(), name=views.CustomAuthToken.__name__),
     path('', views.ApiRoot.as_view(), name=views.ApiRoot.name),
 
     path('posts/', views.PostList.as_view(), name=views.PostList.name),

@@ -29,20 +29,21 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
-    user_id = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='name')
+    owner = serializers.ReadOnlyField(source='owner.username')
     comments = CommentSerializer(many=True)
 
     class Meta:
         model = Post
-        fields = ['url', 'pk', 'title', 'body', 'date', 'user_id', 'comments']
+        fields = ['url', 'pk', 'owner', 'title', 'body', 'date', 'comments']
 
 
 class PostsSerializer(serializers.HyperlinkedModelSerializer):
-    user_id = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='name')
+    # user_id = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='name')
+    owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         model = Post
-        fields = ['url', 'pk', 'title', 'body', 'date', 'user_id']
+        fields = ['url', 'pk', 'owner', 'title', 'body', 'date']
 
 
 class UserPostsSerializer(serializers.HyperlinkedModelSerializer):
@@ -50,7 +51,7 @@ class UserPostsSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ['url', 'pk', 'name', 'username', 'email', 'posts']
+        fields = ['url', 'pk', 'username', 'posts']
 
 
 class PostCommentDetailSerializer(serializers.ModelSerializer):
