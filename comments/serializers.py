@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Address, Comment, Post, User, Geo, Company
+from .models import *
 
 
 class AddressSerializer(serializers.HyperlinkedModelSerializer):
@@ -11,13 +11,13 @@ class AddressSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'pk', 'street', 'suite', 'city', 'zip_code', 'geo']
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     address = serializers.SlugRelatedField(queryset=Address.objects.all(), slug_field='street')
     company = serializers.SlugRelatedField(queryset=Company.objects.all(), slug_field='name')
 
     class Meta:
-        model = User
-        fields = ['url', 'pk', 'name', 'username', 'phone', 'website', 'email', 'address', 'company']
+        model = Profile
+        fields = ['url', 'pk', 'user', 'phone', 'website', 'address', 'company']
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
@@ -25,33 +25,32 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['url', 'pk', 'email', 'body', 'postId', 'name', 'date']
+        fields = ['url', 'pk', 'email', 'body', 'name', 'postId']
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
-    comments = CommentSerializer(many=True)
 
     class Meta:
         model = Post
-        fields = ['url', 'pk', 'owner', 'title', 'body', 'date', 'comments']
+        fields = ['url', 'pk', 'owner', 'title']
 
 
-class PostsSerializer(serializers.HyperlinkedModelSerializer):
-    # user_id = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='name')
+class PostDetailSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         model = Post
-        fields = ['url', 'pk', 'owner', 'title', 'body', 'date']
+        fields = ['url', 'pk', 'owner', 'title', 'body']
 
 
-class UserPostsSerializer(serializers.HyperlinkedModelSerializer):
-    posts = PostSerializer(many=True, read_only=True)
+class PostCommentsSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+    comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
-        model = User
-        fields = ['url', 'pk', 'username', 'posts']
+        model = Post
+        fields = ['url', 'pk', 'owner', 'title', 'body', 'comments']
 
 
 class PostCommentDetailSerializer(serializers.ModelSerializer):
@@ -61,5 +60,18 @@ class PostCommentDetailSerializer(serializers.ModelSerializer):
         fields = ['name', 'email', 'body', 'postId']
 
 
-# class DatabaseSerializer(serializers.Serializer):
-#     file = serializers.FileField()
+class ProfilePostsSerializer(serializers.HyperlinkedModelSerializer):
+    posts = PostSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['url', 'pk', 'username', 'posts']
+
+
+class PostsSerializer(serializers.HyperlinkedModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = Post
+        fields = ['url', 'pk', 'owner', 'title', 'body', 'date', 'comments']

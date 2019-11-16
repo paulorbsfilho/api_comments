@@ -9,10 +9,8 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.utils import json
 from rest_framework.views import APIView
 
-from comments.models import Address, Comment, Post, User, Geo, Company
 from comments.permissions import IsOwnerOrReadyOnly
-from comments.serializers import UserSerializer, UserPostsSerializer, PostsSerializer, \
-    PostCommentDetailSerializer, PostSerializer
+from comments.serializers import *
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -22,16 +20,16 @@ class ApiRoot(generics.GenericAPIView):
         return Response({
             'database-upload': reverse(DatabaseUpload.name, request=request),
             'posts': reverse(PostList.name, request=request),
-            'users': reverse(UserList.name, request=request),
-            'user-posts': reverse(UserPostsList.name, request=request),
+            'profiles': reverse(ProfileList.name, request=request),
+            'profile-posts': reverse(ProfilePostsList.name, request=request),
             'post-comments': reverse(PostsAndCommentsList.name, request=request),
-            'users-statistics': reverse(UsersStatisticsList.name, request=request),
+            'profile-statistics': reverse(ProfilesStatisticsList.name, request=request),
         })
 
 
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostsSerializer
+    serializer_class = PostSerializer
     name = 'post-list'
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
@@ -43,7 +41,7 @@ class PostList(generics.ListCreateAPIView):
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostsSerializer
+    serializer_class = PostDetailSerializer
     name = 'post-detail'
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
@@ -51,9 +49,9 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     )
 
 
-class PostFList(generics.RetrieveUpdateDestroyAPIView):
+class PostComments(generics.ListAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostCommentsSerializer
     name = 'post-comments-list'
 
 
@@ -69,40 +67,40 @@ class PostCommentDetail(APIView):
 
 class PostsAndCommentsList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostsSerializer
     name = 'post-and-comments-list'
 
 
 class PostsAndCommentsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostsSerializer
     name = 'post-and-comments-detail'
 
 
-class UserList(generics.ListCreateAPIView):
+class ProfileList(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    name = 'user-list'
+    serializer_class = ProfileSerializer
+    name = 'profile-list'
     permission_classes = (permissions.IsAuthenticated,)
 
 
-class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    name = 'user-detail'
+    serializer_class = ProfileSerializer
+    name = 'profile-detail'
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser,)
 
 
-class UserPostsList(generics.ListAPIView):
+class ProfilePostsList(generics.ListAPIView):
     queryset = User.objects.all()
-    serializer_class = UserPostsSerializer
-    name = 'user-posts-list'
+    serializer_class = ProfilePostsSerializer
+    name = 'profile-posts-list'
 
 
-class UserPostsDetail(generics.RetrieveUpdateDestroyAPIView):
+class ProfilePostsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
-    serializer_class = UserPostsSerializer
-    name = 'user-post-detail'
+    serializer_class = ProfilePostsSerializer
+    name = 'profile-post-detail'
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -118,7 +116,7 @@ class CustomAuthToken(ObtainAuthToken):
         })
 
 
-class UsersStatisticsList(APIView):
+class ProfilesStatisticsList(APIView):
     name = 'users-statistics'
 
     def get(self, request):
@@ -130,7 +128,6 @@ class UsersStatisticsList(APIView):
             for post in posts:
                 comments = post.comments.all()
                 comments_list.append(comments)
-            print(user.posts)
             stat = {'pk': user.id, 'name': user.name, 'posts': len(posts), 'comments': len(comments_list)}
             stat_list.append(stat)
         return Response(stat_list, status=status.HTTP_200_OK)
@@ -173,17 +170,21 @@ def import_company(d):
     return company
 
 
-def import_users(data):
+def import_profiles(data):
     for d in data:
-        user = User()
-        user.name = d['name']
-        user.phone = d['phone']
-        user.email = d['email']
-        user.username = d['username']
-        user.website = d['website']
-        user.address = import_address(d['address'])
-        user.company = import_company(d['company'])
-        user.save()
+        u = User()
+        u.username = d['username']
+        u.email = d['email']
+        u.password = '123'
+        u.save()
+        profile = Profile()
+        profile.user = u
+        profile.user.first_name = d['name']
+        profile.phone = d['phone']
+        profile.website = d['website']
+        profile.address = import_address(d['address'])
+        profile.company = import_company(d['company'])
+        profile.save()
 
 
 def import_posts(data):
@@ -192,7 +193,7 @@ def import_posts(data):
         print(d)
         post.body = d['body']
         post.title = d['title']
-        post.user_id = User.objects.get(id=d['userId'])
+        post.owner = Profile.objects.get(id=d['userId'])
         post.save()
 
 
@@ -207,7 +208,7 @@ def import_comments(data):
 
 
 def load_objects(data):
-    import_users(data['users'])
+    import_profiles(data['users'])
     import_posts(data['posts'])
     import_comments(data['comments'])
 
@@ -217,7 +218,8 @@ class DatabaseUpload(APIView):
     parser_class = (FileUploadParser,)
 
     def get(self, request):
-        return Response({"info":"Para fazer Upload é recomendado usar Postman"}, status=status.HTTP_200_OK)
+        return Response({"info": "Para fazer upload da base de dados é recomendado usar Postman"},
+                        status=status.HTTP_200_OK)
 
     def post(self, request):
         if 'file' not in request.data:

@@ -11,17 +11,19 @@ urlpatterns = [
 
     path('posts/', views.PostList.as_view(), name=views.PostList.name),
     path('posts/<int:pk>', views.PostDetail.as_view(), name=views.PostDetail.name),
-    path('posts/<int:pk>/comments', views.PostDetail.as_view(), name=views.PostDetail.name),
-    path('posts/<int:pk_post>/comments/<int:pk_comment>', views.PostCommentDetail.as_view(), name=views.PostCommentDetail.name),
+    path('posts/<int:pk>/comments', views.PostComments.as_view(), name=views.PostComments.name),
+    path('posts/<int:pk_post>/comments/<int:pk_comment>', views.PostCommentDetail.as_view(),
+         name=views.PostCommentDetail.name),
     path('post-comments/', views.PostsAndCommentsList.as_view(), name=views.PostsAndCommentsList.name),
     path('post-comments/<int:pk>', views.PostsAndCommentsDetail.as_view(), name=views.PostsAndCommentsDetail.name),
 
-    path('users/', views.UserList.as_view(), name=views.UserList.name),
-    path('users/<int:pk>', views.UserDetail.as_view(), name=views.UserDetail.name),
-    path('user-posts/', views.UserPostsList.as_view(), name=views.UserPostsList.name),
-    path('user-posts/<int:pk>', views.UserPostsDetail.as_view(), name=views.UserPostsDetail.name),
+    path('profiles/', views.ProfileList.as_view(), name=views.ProfileList.name),
+    path('profiles/<int:pk>', views.ProfileDetail.as_view(), name=views.ProfileDetail.name),
 
-    path('users-statistics/', views.UsersStatisticsList.as_view(), name=views.UsersStatisticsList.name),
+    path('profile-posts/', views.ProfilePostsList.as_view(), name=views.ProfilePostsList.name),
+    path('profile-posts/<int:pk>', views.ProfilePostsDetail.as_view(), name=views.ProfilePostsDetail.name),
+
+    path('users-statistics/', views.ProfilesStatisticsList.as_view(), name=views.ProfilesStatisticsList.name),
 
     path('database-upload/', views.DatabaseUpload.as_view(), name=views.DatabaseUpload.name),
 ]

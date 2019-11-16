@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Company(models.Model):
@@ -26,28 +27,22 @@ class Address(models.Model):
         return self.street + ', ' + self.suite + ' - ' + self.zip_code
 
 
-class User(models.Model):
-    name = models.CharField(max_length=200)
-    username = models.CharField(max_length=200)
-    phone = models.CharField(max_length=22)
-    website = models.CharField(max_length=75)
-    email = models.EmailField()
-    address = models.ForeignKey(Address, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="user")
-
-    class Meta:
-        ordering = ('name',)
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=22, null=True, blank=True,)
+    website = models.CharField(max_length=75, null=True, blank=True,)
+    address = models.ForeignKey(Address, null=True, blank=True, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.CASCADE, related_name="profile")
 
     def __str__(self):
-        return self.name
+        return self.user.username
 
 
 class Post(models.Model):
     title = models.CharField(max_length=100)
     body = models.CharField(max_length=400)
     date = models.DateTimeField(auto_now_add=True)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    owner = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='games')
+    owner = models.ForeignKey('Profile', null=True, blank=True, on_delete=models.CASCADE, related_name='posts')
 
     class Meta:
         ordering = ('date',)
@@ -59,7 +54,7 @@ class Post(models.Model):
 class Comment(models.Model):
     email = models.EmailField()
     body = models.CharField(max_length=300)
-    postId = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    postId = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True, related_name='comments')
     name = models.CharField(max_length=75)
     date = models.DateTimeField(auto_now_add=True)
 
@@ -67,4 +62,4 @@ class Comment(models.Model):
         ordering = ('date',)
 
     def __str__(self):
-        return str(self.email) + ' ' + str(self.date)
+        return self.postId
