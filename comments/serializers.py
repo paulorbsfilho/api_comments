@@ -12,12 +12,10 @@ class AddressSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
-    address = serializers.SlugRelatedField(queryset=Address.objects.all(), slug_field='street')
-    company = serializers.SlugRelatedField(queryset=Company.objects.all(), slug_field='name')
 
     class Meta:
         model = Profile
-        fields = ['url', 'pk', 'user', 'phone', 'website', 'address', 'company']
+        fields = ['url', 'pk', 'username', 'email']
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
@@ -46,7 +44,8 @@ class PostDetailSerializer(serializers.HyperlinkedModelSerializer):
 
 class PostCommentsSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
-    comments = CommentSerializer(many=True, read_only=True)
+    # comments = CommentSerializer(many=True, read_only=True)
+    comments = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='post-comment-detail')
 
     class Meta:
         model = Post
