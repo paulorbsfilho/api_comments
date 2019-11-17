@@ -11,12 +11,19 @@ class AddressSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'pk', 'street', 'suite', 'city', 'zip_code', 'geo']
 
 
+class UserSerializer(serializers.HyperlinkedRelatedField):
+
+    class Meta:
+        model = User
+        fields = ['url', 'pk', 'username', 'email']
+
+
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
-    username = serializers.HyperlinkedRelatedField(view_name='profiles', queryset=Profile.objects.all())
+    user = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username')
 
     class Meta:
         model = Profile
-        fields = ['url', 'pk', 'username']
+        fields = ['url', 'pk', 'user']
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
@@ -40,7 +47,7 @@ class PostDetailSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['url', 'pk', 'owner', 'title', 'body']
+        fields = ['url', 'pk', 'owner', 'title', 'body', 'comments']
 
 
 class PostCommentsSerializer(serializers.HyperlinkedModelSerializer):
@@ -61,7 +68,7 @@ class PostCommentDetailSerializer(serializers.ModelSerializer):
 
 class ProfilePostsSerializer(serializers.HyperlinkedModelSerializer):
     posts = PostSerializer(many=True, read_only=True)
-    user = serializers.ReadOnlyField(source='user.username')
+    user = serializers.ReadOnlyField(source='profile.user.username')
 
     class Meta:
         model = Profile

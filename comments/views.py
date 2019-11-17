@@ -1,4 +1,3 @@
-from django.http import Http404
 from rest_framework import generics, status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -109,8 +108,20 @@ class PostsAndCommentsDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'post-and-comments-detail'
 
 
-class ProfileList(generics.ListCreateAPIView):
+class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
+    serializer_class = UserSerializer
+    name = 'user-list'
+
+
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    name = 'user-detail'
+
+
+class ProfileList(generics.ListCreateAPIView):
+    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     name = 'profile-list'
     permission_classes = (permissions.IsAuthenticated,)

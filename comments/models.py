@@ -27,6 +27,13 @@ class Address(models.Model):
         return self.street + ', ' + self.suite + ' - ' + self.zip_code
 
 
+def get_str(self):
+    return self.username
+
+
+User.add_to_class("__str__", get_str)
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone = models.CharField(max_length=22, null=True, blank=True,)
@@ -35,7 +42,7 @@ class Profile(models.Model):
     company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.CASCADE, related_name="profile")
 
     def __str__(self):
-        return self.user.first_name
+        return self.user.username
 
 
 class Post(models.Model):
