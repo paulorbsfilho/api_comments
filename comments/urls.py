@@ -6,7 +6,7 @@ from . import views
 urlpatterns = [
     path('api_auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),
-    path('api-token-auth2/', views.CustomAuthToken.as_view(), name=views.CustomAuthToken.__name__),
+    path('api-token-auth2/', views.CustomAuthToken.as_view(), name=views.CustomAuthToken.name),
     path('', views.ApiRoot.as_view(), name=views.ApiRoot.name),
 
     path('comments/', views.CommentList.as_view(), name=views.CommentList.name),

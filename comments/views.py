@@ -147,6 +147,8 @@ class ProfilePostsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CustomAuthToken(ObtainAuthToken):
+    name = 'auth-token'
+
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
