@@ -42,7 +42,7 @@ class Post(models.Model):
     title = models.CharField(max_length=100)
     body = models.CharField(max_length=400)
     date = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey('Profile', null=True, blank=True, on_delete=models.CASCADE, related_name='posts')
+    owner = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.CASCADE, related_name='posts')
 
     class Meta:
         ordering = ('date',)
@@ -55,7 +55,7 @@ class Comment(models.Model):
     email = models.EmailField()
     body = models.CharField(max_length=300)
     postId = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True, related_name='comments')
-    name = models.CharField(max_length=75)
+    name = models.CharField(max_length=100)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

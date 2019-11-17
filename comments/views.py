@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import generics, status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -11,6 +12,7 @@ from rest_framework.views import APIView
 
 from comments.permissions import IsOwnerOrReadyOnly
 from comments.serializers import *
+from comments.models import *
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -25,6 +27,18 @@ class ApiRoot(generics.GenericAPIView):
             'post-comments': reverse(PostsAndCommentsList.name, request=request),
             'profile-statistics': reverse(ProfilesStatisticsList.name, request=request),
         })
+
+
+class CommentList(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    name = 'comment-list'
+
+
+class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    name = 'comment-detail'
 
 
 class PostList(generics.ListCreateAPIView):
@@ -49,10 +63,28 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     )
 
 
-class PostComments(generics.ListAPIView):
+class PostComments(generics.RetrieveDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostCommentsSerializer
     name = 'post-comments-list'
+
+
+# class PostComments(APIView):
+#     name = 'post-comments-list'
+#
+#     def get(self, request, pk, format=None):
+#         post = Post.objects.get(pk=pk)
+#         comments = post.comments.all()
+#         list_comments = []
+#         for c in comments:
+#             comment = {'pk': c.pk, 'name': c.name, 'email': c.email, 'body': c.body}
+#             list_comments.append(comment)
+#         p = {'pk': post.pk,
+#              'owner': post.owner.username,
+#              'title': post.title,
+#              'body': post.body,
+#              'comments': list_comments}
+#         return Response(p, status=status.HTTP_200_OK)
 
 
 class PostCommentDetail(APIView):
@@ -123,12 +155,12 @@ class ProfilesStatisticsList(APIView):
         users = User.objects.all()
         stat_list = []
         for user in users:
-            posts = user.posts.all()
+            posts = user.profile.posts.all()
             comments_list = []
             for post in posts:
                 comments = post.comments.all()
                 comments_list.append(comments)
-            stat = {'pk': user.id, 'name': user.name, 'posts': len(posts), 'comments': len(comments_list)}
+            stat = {'pk': user.id, 'name': user.first_name, 'posts': len(posts), 'comments': len(comments_list)}
             stat_list.append(stat)
         return Response(stat_list, status=status.HTTP_200_OK)
 
@@ -173,13 +205,14 @@ def import_company(d):
 def import_profiles(data):
     for d in data:
         u = User()
+        print(d)
+        u.first_name = d['name']
         u.username = d['username']
         u.email = d['email']
         u.password = '123'
         u.save()
         profile = Profile()
         profile.user = u
-        profile.user.first_name = d['name']
         profile.phone = d['phone']
         profile.website = d['website']
         profile.address = import_address(d['address'])
@@ -193,13 +226,14 @@ def import_posts(data):
         print(d)
         post.body = d['body']
         post.title = d['title']
-        post.owner = Profile.objects.get(id=d['userId'])
+        post.owner = User.objects.get(id=d['userId'])
         post.save()
 
 
 def import_comments(data):
     for d in data:
         comment = Comment()
+        print(d)
         comment.body = d['body']
         comment.name = d['name']
         comment.postId = Post.objects.get(id=d['postId'])

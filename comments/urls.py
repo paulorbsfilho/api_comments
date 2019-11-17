@@ -9,11 +9,15 @@ urlpatterns = [
     path('api-token-auth2/', views.CustomAuthToken.as_view(), name=views.CustomAuthToken.__name__),
     path('', views.ApiRoot.as_view(), name=views.ApiRoot.name),
 
+    path('comments/', views.CommentList.as_view(), name=views.CommentList.name),
+    path('comments/<int:pk>', views.CommentList.as_view(), name=views.CommentDetail.name),
+
     path('posts/', views.PostList.as_view(), name=views.PostList.name),
     path('posts/<int:pk>', views.PostDetail.as_view(), name=views.PostDetail.name),
     path('posts/<int:pk>/comments', views.PostComments.as_view(), name=views.PostComments.name),
     path('posts/<int:pk_post>/comments/<int:pk_comment>', views.PostCommentDetail.as_view(),
          name=views.PostCommentDetail.name),
+
     path('post-comments/', views.PostsAndCommentsList.as_view(), name=views.PostsAndCommentsList.name),
     path('post-comments/<int:pk>', views.PostsAndCommentsDetail.as_view(), name=views.PostsAndCommentsDetail.name),
 

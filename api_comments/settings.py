@@ -84,9 +84,9 @@ DATABASES = {
     }
     # 'default': {
     #    'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #    'NAME': 'api_comments',
-    #    'USER': 'postgres',
-    #    'PASSWORD': 'postgres',
+    #    'NAME': 'api_comments_db',
+    #    'USER': 'admin',
+    #    'PASSWORD': 'admin',
     #    'HOST': '127.0.0.1',
     #    'PORT': '5432',
     # }
