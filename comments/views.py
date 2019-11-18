@@ -211,16 +211,15 @@ class ProfilesStatisticsList(APIView):
     name = 'users-statistics'
 
     def get(self, request):
-        profiles = Profile.objects.all()
+        users = User.objects.all()
         stat_list = []
-        for profile in profiles:
-            posts = profile.posts.all()
+        for user in users:
+            posts = user.posts.all()
             comments_list = []
             for post in posts:
                 comments = post.comments.all()
                 comments_list.append(comments)
-            stat = {'pk': profile.id, 'name': profile.user.username, 'posts': len(posts),
-                    'comments': len(comments_list)}
+            stat = {'pk': user.id, 'name': user.username, 'posts': len(posts), 'comments': len(comments_list)}
             stat_list.append(stat)
         return Response(stat_list, status=status.HTTP_200_OK)
 
