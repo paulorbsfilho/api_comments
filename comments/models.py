@@ -49,7 +49,7 @@ class Post(models.Model):
     title = models.CharField(max_length=100)
     body = models.CharField(max_length=400)
     date = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey('Profile', null=True, blank=True, on_delete=models.CASCADE, related_name='posts')
+    owner = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.CASCADE, related_name='posts')
 
     class Meta:
         ordering = ('date',)

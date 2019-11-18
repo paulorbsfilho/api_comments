@@ -1,4 +1,4 @@
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import ParseError
@@ -9,7 +9,7 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.utils import json
 from rest_framework.views import APIView
 
-from comments.permissions import IsOwnerOrReadyOnly
+from comments.permissions import *
 from comments.serializers import *
 from comments.models import *
 
@@ -54,7 +54,7 @@ class PostList(generics.ListCreateAPIView):
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostDetailSerializer
+    serializer_class = PostSerializer
     name = 'post-detail'
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
@@ -176,13 +176,13 @@ class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProfilePostsList(generics.ListAPIView):
-    queryset = Profile.objects.all()
+    queryset = User.objects.all()
     serializer_class = ProfilePostsSerializer
     name = 'profile-posts-list'
 
 
 class ProfilePostsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Profile.objects.all()
+    queryset = User.objects.all()
     serializer_class = ProfilePostsSerializer
     name = 'profile-post-detail'
 
@@ -259,12 +259,9 @@ def import_company(d):
 
 def import_profiles(data):
     for d in data:
-        u = User()
+        u = User.objects.create_user(d['username'], d['email'], d['username'] + '123')
         print(d)
         u.first_name = d['name']
-        u.username = d['username']
-        u.email = d['email']
-        u.password = '123'
         u.save()
         profile = Profile()
         profile.user = u
