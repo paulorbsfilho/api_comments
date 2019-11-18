@@ -190,12 +190,12 @@ class ProfilePostsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class CustomAuthToken(ObtainAuthToken):
     name = 'auth-token'
-    # throttle_scope = 'custom-auth-token'
-    # throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'custom-auth-token'
+    throttle_classes = [ScopedRateThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
-        # self.check_throttles(request)
+        self.check_throttles(request)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
