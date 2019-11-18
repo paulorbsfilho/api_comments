@@ -90,10 +90,51 @@ class PostCommentDetail(APIView):
     name = 'post-comments-detail'
 
     def get(self, request, pk_post, pk_comment):
-        post = Post.objects.get(pk=pk_post)
-        comment = post.comments.get(pk=pk_comment)
+        try:
+            post = Post.objects.get(pk=pk_post)
+        except Post.DoesNotExist:
+            msg = {'detail': 'Post não encontrado.'}
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+        try:
+            comment = post.comments.get(pk=pk_comment)
+        except Comment.DoesNotExist:
+            msg = {'detail': 'Comentário não encontrado'}
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
         comment_serializer = PostCommentDetailSerializer(comment)
         return Response(comment_serializer.data)
+
+    def put(self, request, pk_post, pk_comment):
+        try:
+            post = Post.objects.get(pk=pk_post)
+        except Post.DoesNotExist:
+            msg = {'detail': 'Post não encontrado.'}
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+        try:
+            comment = post.comments.get(pk=pk_comment)
+        except Comment.DoesNotExist:
+            msg = {'detail': 'Comentário não encontrado'}
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+        comment_serializer = PostCommentDetailSerializer(comment, data=request.data)
+        if comment_serializer.is_valid():
+            comment_serializer.save()
+            return Response(comment_serializer.data)
+        return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk_post, pk_comment):
+        try:
+            post = Post.objects.get(pk=pk_post)
+        except Post.DoesNotExist:
+            msg = {'detail': 'Post não encontrado.'}
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+        try:
+            comment = post.comments.get(pk=pk_comment)
+        except Comment.DoesNotExist:
+            msg = {'detail': 'Comentário não encontrado'}
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+        comment.delete()
+        return Response(status=status.HTTP_200_OK)
+
+
 
 
 class PostsAndCommentsList(generics.ListCreateAPIView):
@@ -128,20 +169,20 @@ class ProfileList(generics.ListCreateAPIView):
 
 
 class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     name = 'profile-detail'
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser,)
 
 
 class ProfilePostsList(generics.ListAPIView):
-    queryset = User.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = ProfilePostsSerializer
     name = 'profile-posts-list'
 
 
 class ProfilePostsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = ProfilePostsSerializer
     name = 'profile-post-detail'
 
@@ -173,7 +214,8 @@ class ProfilesStatisticsList(APIView):
             for post in posts:
                 comments = post.comments.all()
                 comments_list.append(comments)
-            stat = {'pk': profile.id, 'name': profile.user.username, 'posts': len(posts), 'comments': len(comments_list)}
+            stat = {'pk': profile.id, 'name': profile.user.username, 'posts': len(posts),
+                    'comments': len(comments_list)}
             stat_list.append(stat)
         return Response(stat_list, status=status.HTTP_200_OK)
 
@@ -279,4 +321,3 @@ class DatabaseUpload(APIView):
         d = db_import_json(arch)
         load_objects(d)
         return Response(data=d, status=204)
-
