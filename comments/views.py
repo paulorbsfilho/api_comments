@@ -4,6 +4,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.throttling import ScopedRateThrottle
 
 from rest_framework.parsers import FileUploadParser
 from rest_framework.utils import json
@@ -135,8 +136,6 @@ class PostCommentDetail(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-
-
 class PostsAndCommentsList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostsSerializer
@@ -153,12 +152,14 @@ class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     name = 'user-list'
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     name = 'user-detail'
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
 
 class ProfileList(generics.ListCreateAPIView):
@@ -189,15 +190,19 @@ class ProfilePostsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class CustomAuthToken(ObtainAuthToken):
     name = 'auth-token'
+    # throttle_scope = 'custom-auth-token'
+    # throttle_classes = [ScopedRateThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
+        # self.check_throttles(request)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'user_id': user.pk,
+            'name': user.username,
             'email': user.email,
         })
 
