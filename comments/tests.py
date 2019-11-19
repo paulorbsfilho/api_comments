@@ -1,8 +1,6 @@
-from rest_framework.test import APIRequestFactory
-from rest_framework.authtoken.models import Token
 from rest_framework.test import RequestsClient
 from rest_framework.test import APIClient
-from django.test import TestCase, Client
+from django.test import TestCase
 
 
 class APITest(TestCase):
@@ -12,13 +10,13 @@ class APITest(TestCase):
 
     def test_get_token(self):
         client = APIClient()
-        response = client.post('/api-token-auth2/', {'username': 'Bret', 'password': 'Bret123'}, format='json')
+        response = client.post('/api-token-auth/', {'username': 'Bret', 'password': 'Bret123'}, format='json')
         print(response.status_code)
         assert response.status_code == 200
 
     def test_login_with_token(self):
         # headers={'Authorization': 'de37743763f5c4c62ad0b0fc7e7f945d05cfe14e'}
-        response = self.client.post('http://localhost:8000/api-token-auth2/',
+        response = self.client.post('http://localhost:8000/api-token-auth/',
                                     data={"username": "Bret", "password": "Bret123"})
         print(response)
         print(response.headers)

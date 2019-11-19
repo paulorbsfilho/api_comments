@@ -140,12 +140,14 @@ class PostsAndCommentsList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostsSerializer
     name = 'post-and-comments-list'
+    permission_classes = [IsOwnerOrReadyOnly]
 
 
 class PostsAndCommentsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostsSerializer
     name = 'post-and-comments-detail'
+    permission_classes = [IsOwnerOrReadyOnly]
 
 
 class UserList(generics.ListCreateAPIView):
